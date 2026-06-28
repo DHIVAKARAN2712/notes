@@ -4,7 +4,11 @@
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
 body { font-family: 'Sora', sans-serif; -webkit-font-smoothing: antialiased; }
-
+/* Fix select options in light mode */
+select option {
+  background-color: var(--drop-bg);
+  color: var(--text);
+}
 /* ── THEME VARIABLES ── */
 :root {
   --bg:        #f0f4f8;

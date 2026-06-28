@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { notesAPI } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 
@@ -175,60 +176,79 @@ export default function NoteCard({ note, onDelete, onRefresh, onPreview, onAI, o
       </div>
 
       {/* Comment Section */}
-      {showComments && (
-        <div className="border-t" style={{borderColor:'var(--border)', background:'var(--bg-input)'}}>
-          {/* Comments list */}
-          <div className="max-h-52 overflow-y-auto p-3 space-y-3">
-            {loadingComments ? (
-              <div className="space-y-2">
-                {[1,2].map(i => (
-                  <div key={i} className="flex gap-2">
-                    <div className="skeleton w-7 h-7 rounded-full flex-shrink-0"/>
-                    <div className="flex-1 space-y-1">
-                      <div className="skeleton h-3 w-20 rounded"/>
-                      <div className="skeleton h-3 w-full rounded"/>
-                    </div>
-                  </div>
-                ))}
+     {/* Comment Modal */}
+      {showComments && createPortal(
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4"
+          onClick={(e) => { if(e.target === e.currentTarget) setShowComments(false); }}>
+          <div className="t-card rounded-2xl w-full max-w-md flex flex-col shadow-2xl"
+            style={{maxHeight:'85vh'}}>
+            <div className="flex items-center justify-between px-5 py-4 border-b"
+              style={{borderColor:'var(--border)'}}>
+              <div>
+                <h3 className="t-text font-bold text-sm">Comments</h3>
+                <p className="t-muted text-xs mt-0.5 truncate max-w-[250px]">{note.title}</p>
               </div>
-            ) : comments.length === 0 ? (
-              <p className="t-muted text-xs text-center py-3">No comments yet. Be the first!</p>
-            ) : comments.map((c, i) => (
-              <div key={c.id || i} className="flex gap-2">
-                <div className={`w-7 h-7 rounded-full flex-shrink-0 flex items-center justify-center text-white text-[10px] font-bold
-                  ${c.user_role === 'admin' ? 'bg-gradient-to-br from-blue-500 to-indigo-600' : 'bg-gradient-to-br from-purple-400 to-pink-500'}`}>
-                  {c.user_name?.[0]?.toUpperCase() || '?'}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-0.5">
-                    <span className="t-text text-xs font-semibold">{c.user_name}</span>
-                    {c.user_role === 'admin' && (
-                      <span className="text-[9px] bg-blue-500/20 text-blue-400 px-1.5 py-0.5 rounded-full font-semibold">Admin</span>
-                    )}
-                    <span className="t-muted text-[9px] ml-auto">{timeAgo(c.created_at)}</span>
-                  </div>
-                  <p className="t-text-2 text-xs leading-relaxed">{c.content}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-          {/* Comment input */}
-          <form onSubmit={submitComment} className="flex gap-2 p-3 border-t" style={{borderColor:'var(--border)'}}>
-            <div className="w-6 h-6 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex-shrink-0 flex items-center justify-center text-white text-[10px] font-bold">
-              {user?.name?.[0]?.toUpperCase() || 'U'}
+              <button onClick={() => setShowComments(false)}
+                className="t-muted hover:t-text p-1.5 rounded-lg hover:bg-white/10 transition-colors">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M18 6 6 18M6 6l12 12"/>
+                </svg>
+              </button>
             </div>
-            <input
-              value={commentText}
-              onChange={e => setCommentText(e.target.value)}
-              placeholder="Write a comment..."
-              className="flex-1 t-input rounded-xl px-3 py-1.5 text-xs border focus:outline-none focus:border-blue-500/50 transition-all"
-            />
-            <button type="submit" disabled={!commentText.trim() || submittingComment}
-              className="px-3 py-1.5 bg-blue-600 text-white rounded-xl text-xs font-semibold hover:bg-blue-700 transition-colors disabled:opacity-50">
-              {submittingComment ? '...' : 'Post'}
-            </button>
-          </form>
-        </div>
+            <div className="flex-1 overflow-y-auto p-4 space-y-4">
+              {loadingComments ? (
+                <div className="space-y-3">
+                  {[1,2,3].map(i => (
+                    <div key={i} className="flex gap-3">
+                      <div className="skeleton w-8 h-8 rounded-full flex-shrink-0"/>
+                      <div className="flex-1 space-y-2">
+                        <div className="skeleton h-3 w-24 rounded"/>
+                        <div className="skeleton h-3 w-full rounded"/>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : comments.length === 0 ? (
+                <div className="text-center py-10">
+                  <p className="t-muted text-sm">No comments yet.</p>
+                  <p className="t-muted text-xs mt-1">Be the first to comment!</p>
+                </div>
+              ) : comments.map((c, i) => (
+                <div key={c.id || i} className="flex gap-3">
+                  <div className={`w-8 h-8 rounded-full flex-shrink-0 flex items-center justify-center text-white text-xs font-bold ${c.user_role === 'admin' ? 'bg-gradient-to-br from-blue-500 to-indigo-600' : 'bg-gradient-to-br from-purple-400 to-pink-500'}`}>
+                    {c.user_name?.[0]?.toUpperCase() || '?'}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="t-text text-xs font-semibold">{c.user_name}</span>
+                      {c.user_role === 'admin' && (
+                        <span className="text-[9px] bg-blue-500/20 text-blue-400 px-1.5 py-0.5 rounded-full font-semibold">Admin</span>
+                      )}
+                      <span className="t-muted text-[9px] ml-auto">{timeAgo(c.created_at)}</span>
+                    </div>
+                    <p className="t-text-2 text-sm leading-relaxed">{c.content}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <form onSubmit={submitComment} className="flex gap-2 p-4 border-t" style={{borderColor:'var(--border)'}}>
+              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex-shrink-0 flex items-center justify-center text-white text-xs font-bold">
+                {user?.name?.[0]?.toUpperCase() || 'U'}
+              </div>
+              <input
+                value={commentText}
+                onChange={e => setCommentText(e.target.value)}
+                placeholder="Write a comment..."
+                className="flex-1 t-input rounded-xl px-3 py-2 text-sm border focus:outline-none focus:border-blue-500/50 transition-all"
+              />
+              <button type="submit" disabled={!commentText.trim() || submittingComment}
+                className="px-4 py-2 bg-blue-600 text-white rounded-xl text-sm font-semibold hover:bg-blue-700 transition-colors disabled:opacity-50">
+                {submittingComment ? '...' : 'Post'}
+              </button>
+            </form>
+          </div>
+        </div>,
+        document.body
       )}
     </div>
   );

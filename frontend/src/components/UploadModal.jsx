@@ -23,8 +23,7 @@ export default function UploadModal({ onClose, onSuccess, groups=[] }) {
     finally { setLoading(false); }
   };
 
-  const inputCls = "w-full bg-white/8 text-white placeholder-gray-600 rounded-xl px-3 py-2.5 text-sm border border-white/10 focus:outline-none focus:border-blue-500/50 transition-all";
-
+ const inputCls = "w-full t-input t-text rounded-xl px-3 py-2.5 text-sm border t-border focus:outline-none focus:border-blue-500/50 transition-all placeholder:text-[var(--muted)]";
   return (
     <div className="fixed inset-0 bg-black/75 flex items-center justify-center z-50 p-4">
       <div className="bg-[#1e1e30] rounded-2xl w-full max-w-lg border border-white/10 shadow-2xl max-h-[90vh] flex flex-col">
@@ -50,7 +49,7 @@ export default function UploadModal({ onClose, onSuccess, groups=[] }) {
               <div>
                 <label className="text-gray-400 text-xs mb-1.5 block font-semibold">Subject</label>
                 <select value={form.subject} onChange={e => setForm(f=>({...f,subject:e.target.value}))}
-                  className={inputCls} style={{background:'rgba(255,255,255,0.06)'}}>
+                  className={inputCls} >
                   <option value="">Select...</option>
                   {SUBJECTS.map(s => <option key={s} value={s} className="bg-[#1e1e30]">{s}</option>)}
                 </select>
@@ -58,7 +57,7 @@ export default function UploadModal({ onClose, onSuccess, groups=[] }) {
               <div>
                 <label className="text-gray-400 text-xs mb-1.5 block font-semibold">Group</label>
                 <select value={form.group_id} onChange={e => setForm(f=>({...f,group_id:e.target.value}))}
-                  className={inputCls} style={{background:'rgba(255,255,255,0.06)'}}>
+                  className={inputCls} >
                   <option value="" className="bg-[#1e1e30]">Public</option>
                   {groups.map(g => <option key={g.id} value={g.id} className="bg-[#1e1e30]">{g.name}</option>)}
                 </select>

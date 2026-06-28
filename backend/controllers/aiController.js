@@ -1,36 +1,33 @@
 const db = require('../config/database');
 const fs = require('fs');
 const path = require('path');
+require("dotenv").config()
 
 // ── Call Google Gemini AI ──
 const callGemini = async (prompt) => {
-  const apiKey = process.env.GEMINI_API_KEY;
-  if (!apiKey) throw new Error('GEMINI_API_KEY is missing in .env file');
-
-  console.log('🤖 Calling Gemini AI...');
+  const apiKey = process.env.GROQ_API_KEY;
+  if (!apiKey) throw new Error('GROQ_API_KEY is missing in .env file');
 
   const response = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
+    'https://api.groq.com/openai/v1/chat/completions',
     {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${apiKey}`
+      },
       body: JSON.stringify({
-        contents: [{ parts: [{ text: prompt }] }],
-        generationConfig: { temperature: 0.7, maxOutputTokens: 1024 }
+       model: 'llama-3.3-70b-versatile',
+        messages: [{ role: 'user', content: prompt }],
+        max_tokens: 1024,
+        temperature: 0.7
       })
     }
   );
 
   const data = await response.json();
-
-  if (!response.ok) {
-    console.error('❌ Gemini Error:', JSON.stringify(data));
-    throw new Error(data.error?.message || 'Gemini request failed');
-  }
-
-  if (!data.candidates?.length) throw new Error('Gemini returned empty response');
-  console.log('✅ Gemini responded successfully');
-  return data.candidates[0].content.parts[0].text;
+  if (!response.ok) throw new Error(data.error?.message || 'Groq request failed');
+  return data.choices[0].message.content;
 };
 
 // ── Extract full text from note file ──
@@ -201,11 +198,13 @@ Provide a clear, simple, well-structured answer with examples where helpful:`;
         'INSERT INTO ai_chats (user_id, note_id, question, answer) VALUES (?, NULL, ?, ?)',
         [req.user.id, question, answer]
       );
-    } catch (e) {}
+    } catch (e) {
+      console.log("dberror",e.message)
+    }
 
     res.json({ success: true, answer });
   } catch (err) {
     console.error('❌ clarifyDoubt:', err.message);
-    res.status(500).json({ success: false, message: err.message || 'AI failed. Check GEMINI_API_KEY in .env' });
+    res.status(500).json({ success: false, message: err.message});
   }
 };

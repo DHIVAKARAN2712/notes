@@ -2,6 +2,7 @@
   "name": "eduwallet-backend",
   "version": "3.0.0",
   "main": "server.js",
+  "type":"common.js",
   "scripts": {
     "start": "node server.js",
     "dev": "nodemon server.js"
